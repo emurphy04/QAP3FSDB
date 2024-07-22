@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%=title%></title>
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <h1>Menu</h1>
+    <ul>
+        <%
+        request.get('http://localhost:3000/items', function (error, res, body) {
+            items = JSON.parse(body)
+            console.log(items)
+            items = items.sort((a,b) => {
+                if(a.id < b.id) {
+                    return -1
+                }
+            })
+            console.log(items)
+        })
+        items.forEach(function(item) { 
+                %>
+                <div class="itemBox">
+                <div class="itemIDBox">
+                    <input id="itemIDEdit<%= item.id%>" class="itemIDEdit" type="text" value="<%= item.id %>">
+                </div>
+                <div class="itemNameBox">
+                    <input id="itemNameEdit<%= item.id%>" class="itemNameEdit" type="text" value="<%= item.itemname %>">
+                </div>
+                <div class="itemPriceBox">
+                    <input id="itemPriceEdit<%= item.id%>" class="itemPriceEdit" type="text" value="<%= item.price %>">
+                </div>
+                
+                <div class="itemAlergyBox">
+                    <label>Alergy Free?</label>
+                    <input class="itemAllergyEdit" id="itemAllergyEdit<%= item.id%>" type="text" value="<%= item.alergy %>">
+                </div>
+                <button class="editButton" onclick="edit('<%= item.id %>')"><p class="buttonText">Edit</p></button>
+                <button class="deleteButton" onclick="del('<%= item.id %>')"><p class="buttonText">Delete</p></button>
+            </div>
+        <% }); %>
+        <div class="itemBox">
+            <input id="itemname" class="inputBox" type="text" placeholder="Item Name">
+            <input id="price" class="inputBox" type="text" placeholder="Item Price">
+            <input id="itemid" class="inputBox" type="text" placeholder="Item ID">
+            <label class="alergyfreetxt" for="">Alergy Free?</label>
+            <input id="alergy" type="checkbox">
+            <button class="addButton" onclick="add()"><p class="buttonText">Add Item</p></button>
+        </div>
+    </ul>
+    
+    <script>
+        function edit(itemid){
+            console.log(itemid)
+            var x2 = document.getElementById('itemAllergyEdit'+itemid).value
+                if (x2 == 'true'){
+                    var alergy = true
+                } else {
+                    alergy = false
+                }
+
+            fetch(`http://localhost:3000/items/${itemid}`, {
+                method: "PUT",
+                body: JSON.stringify({
+                        "id": itemid,
+                        "itemname": document.getElementById('itemNameEdit'+itemid).value,
+                        "price": document.getElementById('itemPriceEdit'+itemid).value,
+                        "alergy": alergy
+                    }),
+
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8"
+                    }
+            })
+            fetch('http://localhost:3000/items', {
+                method: "GET",
+            })
+            location.reload()
+        }
+
+        function del(itemid){
+            console.log(itemid)
+            fetch(`http://localhost:3000/items/${itemid}`, {
+                method: "DELETE",
+            })
+                .then((response) => {
+                    if (response.ok){
+                        console.log('Item Deleted')
+                    }
+                });
+
+            fetch('http://localhost:3000/items', {
+                method: "GET",
+            })
+            location.reload()
+            
+        };
+
+        function add(){
+            try {
+                var x = document.getElementById('alergy').checked
+                console.log(x)
+                if (x == true){
+                    var alergy1 = true
+                } else {
+                    alergy1 = false
+                }
+
+                fetch(`http://localhost:3000/items`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        "id": document.getElementById('itemid').value,
+                        "itemname": document.getElementById('itemname').value,
+                        "price": document.getElementById('price').value,
+                        "alergy": alergy1
+                    }),
+
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8"
+                    }
+                })
+                    .then((response) => {
+                        if (response.ok){
+                            console.log('Item Added')
+                        }
+                    });
+
+                fetch('http://localhost:3000/items', {
+                    method: "GET",
+                })
+            } catch (error) {
+                alert('Error: '+error)
+            }
+            fetch('http://localhost:3000/items', {
+                method: "GET",
+            })
+            location.reload()
+        
+            
+        };
+    </script>
+</body>
+</html>
